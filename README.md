@@ -49,6 +49,51 @@ npm run build
 npm start
 ```
 
+## Deploy da zero con Docker
+
+Questo progetto usa SQLite e salva le immagini caricate su disco, quindi il deploy
+consigliato è una VPS o macchina Docker con filesystem persistente. Il file
+`compose.yaml` avvia:
+
+- `app`: Next.js in produzione, con migration Prisma applicate all'avvio.
+- `caddy`: reverse proxy HTTPS automatico per il dominio configurato.
+- `app-data`: volume persistente con database SQLite e immagini caricate.
+
+Sul server:
+
+```bash
+# prerequisiti: Docker Engine e Docker Compose plugin
+git clone git@github.com:cap-faenza/reservations.git
+cd reservations
+cp .env.production.example .env.production
+```
+
+Poi modifica `.env.production`:
+
+- `SITE_DOMAIN`: dominio puntato al server via DNS.
+- `BASE_URL`: URL pubblico, normalmente `https://<SITE_DOMAIN>`.
+- `ADMIN_PIN`: PIN reale dell'area admin.
+- `AUTH_SECRET`: genera con `openssl rand -hex 32`.
+- SMTP facoltativo, ma consigliato per inviare i link di gestione via email.
+
+Avvio iniziale:
+
+```bash
+docker compose up -d --build
+docker compose logs -f app
+```
+
+Aggiornamento dopo un nuovo push:
+
+```bash
+git pull
+docker compose up -d --build
+```
+
+Il database di produzione nasce dentro il volume Docker `app-data` al percorso
+`/app/data/production.db`; le immagini finiscono in `/app/data/uploads`.
+Non cancellare quel volume durante rebuild o aggiornamenti.
+
 Note per il deploy:
 
 - Il database è **SQLite** e le immagini caricate finiscono in `data/uploads/`: serve un hosting con **filesystem persistente** (VPS, Docker con volume, ecc.). Non adatto così com'è a piattaforme serverless come Vercel.
