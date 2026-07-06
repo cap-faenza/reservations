@@ -11,6 +11,13 @@ export function isPast(date: string): boolean {
   return date < todayISO();
 }
 
+/** True se l'ultimo giorno utile per prenotare è già passato. */
+export function isReservationDeadlinePassed(
+  bookingDeadline: string | null | undefined
+): boolean {
+  return Boolean(bookingDeadline && bookingDeadline < todayISO());
+}
+
 function toDate(date: string): Date {
   // Mezzogiorno per evitare slittamenti di giorno dovuti al fuso orario
   return new Date(`${date}T12:00:00`);

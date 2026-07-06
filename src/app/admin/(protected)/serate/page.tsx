@@ -13,7 +13,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
-import { formatDateShort, isPast } from "@/lib/format";
+import {
+  formatDateShort,
+  isPast,
+  isReservationDeadlinePassed,
+} from "@/lib/format";
 import { DeleteEventButton, ToggleOpenButton } from "./event-actions";
 
 export const dynamic = "force-dynamic";
@@ -63,6 +67,7 @@ export default async function AdminEventsPage() {
               <TableRow>
                 <TableHead>Serata</TableHead>
                 <TableHead>Data</TableHead>
+                <TableHead>Termine prenotazioni</TableHead>
                 <TableHead>Stato</TableHead>
                 <TableHead className="text-right">Prenotazioni</TableHead>
                 <TableHead className="text-right">Persone</TableHead>
@@ -76,6 +81,9 @@ export default async function AdminEventsPage() {
                   0
                 );
                 const past = isPast(event.date);
+                const deadlinePassed = isReservationDeadlinePassed(
+                  event.bookingDeadline
+                );
                 return (
                   <TableRow key={event.id}>
                     <TableCell className="font-medium">
@@ -94,13 +102,20 @@ export default async function AdminEventsPage() {
                     <TableCell className="whitespace-nowrap">
                       {formatDateShort(event.date)}, {event.time}
                     </TableCell>
+                    <TableCell className="whitespace-nowrap text-muted-foreground">
+                      {event.bookingDeadline
+                        ? formatDateShort(event.bookingDeadline)
+                        : "Nessun limite"}
+                    </TableCell>
                     <TableCell>
                       {past ? (
                         <Badge variant="outline">Conclusa</Badge>
-                      ) : event.isOpen ? (
-                        <Badge className="bg-green-600 text-white">Aperta</Badge>
-                      ) : (
+                      ) : !event.isOpen ? (
                         <Badge variant="secondary">Chiusa</Badge>
+                      ) : deadlinePassed ? (
+                        <Badge variant="secondary">Termine scaduto</Badge>
+                      ) : (
+                        <Badge className="bg-green-600 text-white">Aperta</Badge>
                       )}
                     </TableCell>
                     <TableCell className="text-right tabular-nums">

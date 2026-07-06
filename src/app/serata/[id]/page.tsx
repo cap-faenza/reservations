@@ -1,13 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, Clock, Lock, QrCode } from "lucide-react";
+import {
+  ArrowLeft,
+  CalendarClock,
+  CalendarDays,
+  Clock,
+  Lock,
+  QrCode,
+} from "lucide-react";
 import { EventHero } from "@/components/event-hero";
+import {
+  descriptionToPlainText,
+  LinkedDescription,
+} from "@/components/linked-description";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { SITE_NAME } from "@/lib/config";
 import { db } from "@/lib/db";
-import { formatDateLong, isPast } from "@/lib/format";
+import {
+  formatDateLong,
+  isPast,
+  isReservationDeadlinePassed,
+} from "@/lib/format";
 import { BookingForm } from "./booking-form";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +33,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { id } = await params;
   const event = await db.event.findUnique({ where: { id } });
   if (!event) return { title: "Serata non trovata" };
+  const description = descriptionToPlainText(event.description);
   return {
     title: event.name,
-    description: event.description.slice(0, 160) || `Prenota il tuo posto per ${event.name}.`,
+    description: description.slice(0, 160) || `Prenota il tuo posto per ${event.name}.`,
   };
 }
 
@@ -29,7 +45,9 @@ export default async function EventPage({ params }: PageProps) {
   const event = await db.event.findUnique({ where: { id } });
   if (!event) notFound();
 
-  const closed = !event.isOpen || isPast(event.date);
+  const past = isPast(event.date);
+  const deadlinePassed = isReservationDeadlinePassed(event.bookingDeadline);
+  const closed = !event.isOpen || past || deadlinePassed;
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -68,14 +86,21 @@ export default async function EventPage({ params }: PageProps) {
               <Clock className="size-4" />
               ore {event.time}
             </span>
+            {event.bookingDeadline && (
+              <span className="inline-flex items-center gap-1.5">
+                <CalendarClock className="size-4" />
+                prenotazioni fino al {formatDateLong(event.bookingDeadline)}
+              </span>
+            )}
           </div>
           <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
             {event.name}
           </h1>
           {event.description && (
-            <p className="whitespace-pre-line text-muted-foreground">
-              {event.description}
-            </p>
+            <LinkedDescription
+              description={event.description}
+              className="text-muted-foreground"
+            />
           )}
         </div>
 
@@ -85,8 +110,10 @@ export default async function EventPage({ params }: PageProps) {
               <CardContent className="flex flex-col items-center gap-3 py-10 text-center">
                 <Lock className="size-8 text-muted-foreground" strokeWidth={1.5} />
                 <p className="text-lg font-medium">
-                  {isPast(event.date)
+                  {past
                     ? "Questa serata si è già svolta."
+                    : deadlinePassed
+                      ? "Il termine per prenotare questa serata è scaduto."
                     : "Le prenotazioni per questa serata sono chiuse."}
                 </p>
                 <Button asChild variant="outline">

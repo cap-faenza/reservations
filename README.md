@@ -7,13 +7,14 @@ App per gestire le prenotazioni delle serate: gli ospiti vedono le serate aperte
 **Per gli ospiti**
 
 - Elenco delle serate aperte con data, ora, descrizione e immagine.
+- Descrizioni con link cliccabili nelle pagine delle serate.
 - Prenotazione con nome, cognome, numero di persone ed email facoltativa.
 - Se l'ospite lascia l'email riceve un link personale per **modificare o cancellare** la prenotazione in autonomia. Senza email, solo l'admin può intervenire.
 - Da ogni pagina serata si scarica il **QR code** che porta alla pagina stessa.
 
 **Per l'admin** (accesso con PIN da `/admin`)
 
-- CRUD completo delle serate: nome, descrizione, data, ora, immagine hero, colore tema, apertura/chiusura prenotazioni.
+- CRUD completo delle serate: nome, descrizione, data, ora, data limite prenotazioni, immagine hero, colore tema, apertura/chiusura prenotazioni.
 - Lista prenotati per serata con totale persone.
 - Modifica, eliminazione e inserimento manuale di ogni prenotazione (es. prese al telefono).
 

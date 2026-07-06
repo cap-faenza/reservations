@@ -54,6 +54,7 @@ export type EventInput = {
   description: string;
   date: string;
   time: string;
+  bookingDeadline: string | null;
   themeColor: string;
   isOpen: boolean;
 };
@@ -66,6 +67,7 @@ export function parseEventForm(formData: FormData): {
   const description = String(formData.get("description") ?? "").trim();
   const date = String(formData.get("date") ?? "").trim();
   const time = String(formData.get("time") ?? "").trim();
+  const bookingDeadlineRaw = String(formData.get("bookingDeadline") ?? "").trim();
   const themeColor = String(formData.get("themeColor") ?? "").trim().toLowerCase();
   const isOpen = formData.get("isOpen") === "on";
 
@@ -76,12 +78,27 @@ export function parseEventForm(formData: FormData): {
 
   if (description.length > 5000) errors.description = "La descrizione è troppo lunga.";
 
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) errors.date = "Indica la data della serata.";
+  const validDate = /^\d{4}-\d{2}-\d{2}$/.test(date);
+  if (!validDate) errors.date = "Indica la data della serata.";
 
   if (!/^\d{2}:\d{2}$/.test(time)) errors.time = "Indica l'ora di inizio.";
+
+  let bookingDeadline: string | null = null;
+  if (bookingDeadlineRaw) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(bookingDeadlineRaw)) {
+      errors.bookingDeadline = "Indica una data limite valida.";
+    } else if (validDate && bookingDeadlineRaw > date) {
+      errors.bookingDeadline =
+        "La data limite non può essere successiva alla data della serata.";
+    } else {
+      bookingDeadline = bookingDeadlineRaw;
+    }
+  }
 
   if (!isValidHexColor(themeColor)) errors.themeColor = "Scegli un colore tema valido.";
 
   if (Object.keys(errors).length > 0) return { errors };
-  return { data: { name, description, date, time, themeColor, isOpen } };
+  return {
+    data: { name, description, date, time, bookingDeadline, themeColor, isOpen },
+  };
 }

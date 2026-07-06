@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   ArrowLeft,
+  CalendarClock,
   CalendarDays,
   Clock,
   ExternalLink,
@@ -22,7 +23,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { db } from "@/lib/db";
-import { formatDateLong, formatDateShort, isPast } from "@/lib/format";
+import {
+  formatDateLong,
+  formatDateShort,
+  isPast,
+  isReservationDeadlinePassed,
+} from "@/lib/format";
 import { AddReservationButton, ReservationRowActions } from "./reservation-actions";
 
 export const dynamic = "force-dynamic";
@@ -46,6 +52,7 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
 
   const totalPeople = event.reservations.reduce((sum, r) => sum + r.people, 0);
   const past = isPast(event.date);
+  const deadlinePassed = isReservationDeadlinePassed(event.bookingDeadline);
 
   return (
     <div className="space-y-6">
@@ -66,10 +73,12 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
           </h1>
           {past ? (
             <Badge variant="outline">Conclusa</Badge>
-          ) : event.isOpen ? (
-            <Badge className="bg-green-600 text-white">Aperta</Badge>
-          ) : (
+          ) : !event.isOpen ? (
             <Badge variant="secondary">Chiusa</Badge>
+          ) : deadlinePassed ? (
+            <Badge variant="secondary">Termine scaduto</Badge>
+          ) : (
+            <Badge className="bg-green-600 text-white">Aperta</Badge>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm font-medium text-muted-foreground">
@@ -81,6 +90,12 @@ export default async function AdminEventDetailPage({ params }: PageProps) {
             <Clock className="size-4" />
             ore {event.time}
           </span>
+          {event.bookingDeadline && (
+            <span className="inline-flex items-center gap-1.5">
+              <CalendarClock className="size-4" />
+              prenotazioni fino al {formatDateLong(event.bookingDeadline)}
+            </span>
+          )}
         </div>
       </div>
 

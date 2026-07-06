@@ -33,6 +33,7 @@ type EventFormProps = {
     description: string;
     date: string;
     time: string;
+    bookingDeadline: string | null;
     themeColor: string;
     isOpen: boolean;
     heroImage: string | null;
@@ -80,7 +81,7 @@ export function EventForm({ eventId, defaults }: EventFormProps) {
         <FieldError message={state.errors?.name} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-4 sm:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor="date">Data *</Label>
           <Input
@@ -102,6 +103,16 @@ export function EventForm({ eventId, defaults }: EventFormProps) {
             required
           />
           <FieldError message={state.errors?.time} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="bookingDeadline">Prenotazioni fino al</Label>
+          <Input
+            id="bookingDeadline"
+            name="bookingDeadline"
+            type="date"
+            defaultValue={defaults?.bookingDeadline ?? ""}
+          />
+          <FieldError message={state.errors?.bookingDeadline} />
         </div>
       </div>
 

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { getBaseUrl } from "@/lib/base-url";
 import { sendReservationEmail } from "@/lib/email";
-import { isPast } from "@/lib/format";
+import { isPast, isReservationDeadlinePassed } from "@/lib/format";
 import { parseReservationForm, type FieldErrors } from "@/lib/validation";
 
 export type ReservationFormState = {
@@ -29,7 +29,11 @@ export async function createReservation(
 ): Promise<ReservationFormState> {
   const event = await db.event.findUnique({ where: { id: eventId } });
   if (!event) return { status: "error", message: "Serata non trovata." };
-  if (!event.isOpen || isPast(event.date)) {
+  if (
+    !event.isOpen ||
+    isPast(event.date) ||
+    isReservationDeadlinePassed(event.bookingDeadline)
+  ) {
     return { status: "error", message: "Le prenotazioni per questa serata sono chiuse." };
   }
 

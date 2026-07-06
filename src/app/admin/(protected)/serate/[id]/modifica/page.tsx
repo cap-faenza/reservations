@@ -40,6 +40,7 @@ export default async function EditEventPage({ params }: PageProps) {
           description: event.description,
           date: event.date,
           time: event.time,
+          bookingDeadline: event.bookingDeadline,
           themeColor: event.themeColor,
           isOpen: event.isOpen,
           heroImage: event.heroImage,

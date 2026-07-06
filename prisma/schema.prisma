@@ -8,16 +8,17 @@ datasource db {
 }
 
 model Event {
-  id           String        @id @default(cuid())
-  name         String
-  description  String
-  date         String // YYYY-MM-DD
-  time         String // HH:MM
-  heroImage    String? // nome file in data/uploads
-  themeColor   String        @default("#e11d48")
-  isOpen       Boolean       @default(true)
-  createdAt    DateTime      @default(now())
-  reservations Reservation[]
+  id              String        @id @default(cuid())
+  name            String
+  description     String
+  date            String // YYYY-MM-DD
+  time            String // HH:MM
+  bookingDeadline String? // YYYY-MM-DD, ultimo giorno per prenotare
+  heroImage       String? // nome file in data/uploads
+  themeColor      String        @default("#e11d48")
+  isOpen          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  reservations    Reservation[]
 }
 
 model Reservation {

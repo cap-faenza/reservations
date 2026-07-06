@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, Clock, MoonStar } from "lucide-react";
 import { EventHero } from "@/components/event-hero";
+import { descriptionToPlainText } from "@/components/linked-description";
 import { Card, CardContent } from "@/components/ui/card";
 import { SITE_NAME } from "@/lib/config";
 import { contrastText } from "@/lib/color";
@@ -10,8 +11,13 @@ import { formatDateLong, todayISO } from "@/lib/format";
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
+  const today = todayISO();
   const events = await db.event.findMany({
-    where: { isOpen: true, date: { gte: todayISO() } },
+    where: {
+      isOpen: true,
+      date: { gte: today },
+      OR: [{ bookingDeadline: null }, { bookingDeadline: { gte: today } }],
+    },
     orderBy: [{ date: "asc" }, { time: "asc" }],
   });
 
@@ -81,7 +87,7 @@ export default async function HomePage() {
                     </h2>
                     {event.description && (
                       <p className="line-clamp-2 text-sm text-muted-foreground">
-                        {event.description}
+                        {descriptionToPlainText(event.description)}
                       </p>
                     )}
                     <div className="mt-auto pt-3">
