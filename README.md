@@ -108,6 +108,27 @@ git pull
 docker-compose -f compose.server.yaml up -d --build
 ```
 
+### Deploy automatico a ogni push (GitHub Actions)
+
+Ogni push su `main` fa partire il workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml),
+che si connette in SSH al server e ricostruisce il container. Si può anche
+lanciare a mano da GitHub → Actions → Deploy → *Run workflow*.
+
+Come è configurato:
+
+- Sul server c'è `~/deploy-reservations.sh` (copia versionata in
+  [`scripts/server-deploy.sh`](scripts/server-deploy.sh)) che fa
+  `git fetch` + `reset --hard FETCH_HEAD` + `docker-compose up -d --build`.
+- Una chiave SSH dedicata è registrata in `~/.ssh/authorized_keys` con un
+  **forced-command**: quella chiave può *solo* eseguire lo script di deploy,
+  niente shell. Così, anche se il segreto trapelasse dal repo pubblico, non
+  darebbe accesso al server.
+- La chiave privata è nel secret GitHub `DEPLOY_SSH_KEY`; la host key del
+  server è pinnata nel workflow.
+
+Se cambi `scripts/server-deploy.sh`, aggiorna la copia sul server:
+`scp scripts/server-deploy.sh ovh:/home/ddiiorio/deploy-reservations.sh`.
+
 Note per il deploy:
 
 - Il database è **SQLite** e le immagini caricate finiscono in `data/uploads/`: serve un hosting con **filesystem persistente** (VPS, Docker con volume, ecc.). Non adatto così com'è a piattaforme serverless come Vercel.

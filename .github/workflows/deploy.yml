@@ -1,0 +1,35 @@
+name: Deploy
+
+# Deploy automatico su reservations.muvat.cloud a ogni push su main.
+# Si connette in SSH al server con una chiave dedicata vincolata a un solo
+# comando (forced-command in authorized_keys): la chiave può SOLO lanciare
+# ~/deploy-reservations.sh, che fa git pull + docker-compose up -d --build.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Deploy via SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          # Host key del server (pinnata per evitare MITM)
+          echo '[51.75.16.232]:62626 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIN+u85E8C6AHDuUOawyY9iYJe62F83+ozxGtsUUvaXnz' > ~/.ssh/known_hosts
+          # Il comando inviato viene ignorato: sul server scatta il forced-command
+          ssh -i ~/.ssh/deploy_key -p 62626 \
+            -o IdentitiesOnly=yes \
+            -o UserKnownHostsFile=~/.ssh/known_hosts \
+            ddiiorio@51.75.16.232 deploy
