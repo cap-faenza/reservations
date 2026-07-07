@@ -94,6 +94,20 @@ Il database di produzione nasce dentro il volume Docker `app-data` al percorso
 `/app/data/production.db`; le immagini finiscono in `/app/data/uploads`.
 Non cancellare quel volume durante rebuild o aggiornamenti.
 
+### Server con reverse proxy già presente (deploy attuale)
+
+Il deploy su `reservations.muvat.cloud` gira su un server con Apache già in
+ascolto su 80/443 e Docker/docker-compose datati: si usa `compose.server.yaml`
+(solo il container app su `127.0.0.1:8105`, senza Caddy), con vhost Apache +
+certbot per il TLS. Il file `.env.production` è **senza virgolette** nei valori
+(docker-compose v1 le passerebbe letteralmente). Aggiornamento:
+
+```bash
+cd ~/reservations.muvat.cloud
+git pull
+docker-compose -f compose.server.yaml up -d --build
+```
+
 Note per il deploy:
 
 - Il database è **SQLite** e le immagini caricate finiscono in `data/uploads/`: serve un hosting con **filesystem persistente** (VPS, Docker con volume, ecc.). Non adatto così com'è a piattaforme serverless come Vercel.
