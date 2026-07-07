@@ -40,8 +40,20 @@ export async function createReservation(
   const { data, errors } = parseReservationForm(formData);
   if (!data) return { status: "error", errors };
 
-  const token = newToken();
-  await db.reservation.create({ data: { ...data, eventId, token } });
+  // Dedup per email nella stessa serata: se questa email ha già una prenotazione
+  // per questa serata, la sovrascriviamo silenziosamente mantenendo lo stesso
+  // token, così eventuali link di gestione già inviati restano validi.
+  let token: string;
+  const existing = data.email
+    ? await db.reservation.findFirst({ where: { eventId, email: data.email } })
+    : null;
+  if (existing) {
+    token = existing.token;
+    await db.reservation.update({ where: { id: existing.id }, data });
+  } else {
+    token = newToken();
+    await db.reservation.create({ data: { ...data, eventId, token } });
+  }
 
   let emailSent = false;
   if (data.email) {
