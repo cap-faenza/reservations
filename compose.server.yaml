@@ -1,6 +1,8 @@
-# Variante per server con reverse proxy già presente sul host (es. Apache/nginx)
+# Variante per server con reverse proxy gia' presente sul host (es. Apache/nginx)
 # e Docker/docker-compose datati (formato 2.3): solo il container dell'app,
 # esposto su 127.0.0.1:8105. TLS e dominio sono gestiti dal proxy del host.
+# NB: mantieni questo file solo-ASCII: docker-compose (Python 3.6) lo legge con
+# locale ASCII sotto il forced-command SSH e i caratteri accentati lo romperebbero.
 #
 #   docker-compose -f compose.server.yaml up -d --build
 version: "2.3"

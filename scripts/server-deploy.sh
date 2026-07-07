@@ -6,6 +6,9 @@
 # Se lo modifichi, ricordati di aggiornare anche la copia sul server:
 #   scp scripts/server-deploy.sh ovh:/home/ddiiorio/deploy-reservations.sh
 set -euo pipefail
+# docker-compose gira su Python 3.6: senza un locale UTF-8 esplicito legge i file
+# come ASCII e va in errore su eventuali caratteri accentati.
+export LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8
 cd "$HOME/reservations.muvat.cloud"
 echo "[deploy] $(date -u '+%Y-%m-%d %H:%M:%S UTC') — fetch"
 # NB: si resetta su FETCH_HEAD e non su origin/main perché "git fetch origin main"
