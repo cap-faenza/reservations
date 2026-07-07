@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1
 
-FROM node:24-bookworm-slim AS deps
+# node:22-bullseye (glibc 2.31): compatibile anche con Docker Engine < 20.10.10,
+# dove le immagini bookworm (glibc >= 2.34) falliscono per il profilo seccomp datato.
+FROM node:22-bullseye-slim AS deps
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -13,7 +15,7 @@ COPY package.json package-lock.json prisma.config.ts ./
 COPY prisma ./prisma
 RUN npm ci
 
-FROM node:24-bookworm-slim AS builder
+FROM node:22-bullseye-slim AS builder
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -24,7 +26,7 @@ COPY --from=deps /app/src/generated ./src/generated
 RUN npm run build
 RUN npm prune --omit=dev
 
-FROM node:24-bookworm-slim AS runner
+FROM node:22-bullseye-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
